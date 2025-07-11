@@ -53,6 +53,7 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            text-decoration: none; /* For <a> tags styled as buttons */
         }
 
         .pm-button:hover, .pm-button:focus {
@@ -67,6 +68,8 @@
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+            background-color: var(--button-bg);
+            color: var(--primary-accent);
         }
 
         .pm-input, .pm-select, .pm-textarea {
@@ -453,16 +456,10 @@
         const modalBody = document.getElementById('modal-body');
         const modalCloseBtn = document.getElementById('modal-close-btn');
 
-        // Note on "No Libraries": QR Code generation from scratch is very complex. 
-        // We use a public API, which is a common practice for such tasks in frontend-only projects.
-        // It's not a library, but an external dependency. This is a pragmatic choice.
-        // Also, video/audio *format conversion* (e.g., mp4 to avi) is impossible in browser JS.
-        // The tools have been adapted to what is feasible (e.g., GIF Creator, Audio Trimmer).
-        
         const toolsData = {
             'image-converter': {
-                name: 'Image Converter',
-                desc: 'Convert images to JPG, PNG, or WEBP formats.',
+                name: 'Image & PDF Converter',
+                desc: 'Convert images to JPG, PNG, WEBP, or PDF formats.',
                 getHTML: () => `
                     <p>Upload an image and choose the format to convert to.</p>
                     <input type="file" id="ic-file" class="pm-input" accept="image/*">
@@ -471,8 +468,9 @@
                         <option value="image/jpeg">JPG</option>
                         <option value="image/png">PNG</option>
                         <option value="image/webp">WEBP</option>
+                        <option value="application/pdf">PDF</option>
                     </select>
-                    <button id="ic-convert-btn" class="pm-button">Convert & Download</button>
+                    <button id="ic-convert-btn" class="pm-button" disabled>Load Image First</button>
                     <div id="ic-output"></div>
                 `,
                 init: () => {
@@ -480,43 +478,148 @@
                     const formatSelect = document.getElementById('ic-format');
                     const convertBtn = document.getElementById('ic-convert-btn');
                     const outputDiv = document.getElementById('ic-output');
+                    
+                    let isFileReady = false;
+                    let isPdfLibReady = false;
 
-                    convertBtn.addEventListener('click', () => {
-                        if (!fileInput.files || fileInput.files.length === 0) {
-                            outputDiv.innerHTML = `<div class="notification error">Please select a file first.</div>`;
+                    function updateButtonState() {
+                        const isPdfFormat = formatSelect.value === 'application/pdf';
+                        
+                        if (isFileReady && (!isPdfFormat || isPdfLibReady)) {
+                            convertBtn.disabled = false;
+                            convertBtn.textContent = 'Convert & Download';
+                        } else {
+                            convertBtn.disabled = true;
+                            if (!isFileReady) {
+                                convertBtn.textContent = 'Load Image First';
+                            } else if (isPdfFormat && !isPdfLibReady) {
+                                convertBtn.textContent = 'Loading PDF Engine...';
+                            } else {
+                                convertBtn.textContent = 'Convert & Download';
+                            }
+                        }
+                    }
+                    
+                    // --- FINAL, ROBUST SCRIPT LOADING LOGIC ---
+                    function loadPdfLibrary() {
+                        // Check if the library is already available on the window object
+                        if (window.jspdf) {
+                            console.log('jsPDF already loaded.');
+                            isPdfLibReady = true;
+                            updateButtonState();
                             return;
                         }
+                        
+                        // Check if we are already in the process of loading it
+                        if (document.getElementById('jspdf-dynamic-script')) {
+                            console.log('jsPDF is already being loaded.');
+                            return;
+                        }
+
+                        // If not, create the script tag dynamically
+                        const script = document.createElement('script');
+                        script.id = 'jspdf-dynamic-script';
+                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+
+                        // Attach listeners BEFORE appending to the DOM
+                        script.onload = () => {
+                            console.log('jsPDF dynamically loaded successfully.');
+                            isPdfLibReady = true;
+                            updateButtonState();
+                        };
+
+                        script.onerror = () => {
+                            console.error('Failed to load jsPDF library.');
+                            outputDiv.innerHTML = `<div class="notification error">Could not load PDF library. Please check your internet connection and try again.</div>`;
+                            // Remove the failed script tag
+                            script.remove();
+                        };
+
+                        // Append to the body to start the download
+                        document.body.appendChild(script);
+                    }
+                    // --- END OF SCRIPT LOADING LOGIC ---
+
+                    fileInput.addEventListener('change', () => {
+                        isFileReady = fileInput.files.length > 0;
+                        if (isFileReady) outputDiv.innerHTML = '';
+                        updateButtonState();
+                    });
+                    
+                    formatSelect.addEventListener('change', updateButtonState);
+
+                    convertBtn.addEventListener('click', () => {
+                        if (!fileInput.files || fileInput.files.length === 0) return;
+                        
                         const file = fileInput.files[0];
                         const reader = new FileReader();
+                        outputDiv.innerHTML = `<div class="notification">Processing...</div>`;
 
                         reader.onload = e => {
                             const img = new Image();
                             img.onload = () => {
-                                const canvas = document.createElement('canvas');
-                                canvas.width = img.width;
-                                canvas.height = img.height;
-                                const ctx = canvas.getContext('2d');
-                                ctx.drawImage(img, 0, 0);
-
                                 const format = formatSelect.value;
-                                const dataUrl = canvas.toDataURL(format);
-                                const extension = format.split('/')[1];
-                                
-                                const link = document.createElement('a');
-                                link.href = dataUrl;
-                                link.download = `converted.${extension}`;
-                                link.className = 'pm-button';
-                                link.textContent = `Download ${extension.toUpperCase()}`;
-                                
-                                outputDiv.innerHTML = '';
-                                outputDiv.appendChild(link);
+
+                                if (format === 'application/pdf') {
+                                    try {
+                                        const { jsPDF } = window.jspdf;
+                                        const orientation = img.width > img.height ? 'l' : 'p';
+                                        const doc = new jsPDF({ orientation, unit: 'px', format: [img.width, img.height] });
+                                        
+                                        doc.addImage(img, 'PNG', 0, 0, img.width, img.height);
+                                        
+                                        doc.save('converted.pdf'); 
+                                        
+                                        const pdfDataUri = doc.output('datauristring');
+                                        const manualLink = document.createElement('a');
+                                        manualLink.href = pdfDataUri;
+                                        manualLink.download = 'converted.pdf';
+                                        manualLink.className = 'pm-button';
+                                        manualLink.textContent = 'Manual Download';
+                                        manualLink.style.display = 'inline-block';
+                                        manualLink.style.marginTop = '1rem';
+
+                                        outputDiv.innerHTML = `<div class="notification success">PDF created! If your download didn't start, use the link below.</div>`;
+                                        outputDiv.appendChild(manualLink);
+
+                                    } catch (err) {
+                                         outputDiv.innerHTML = `<div class="notification error">Failed to create PDF: ${err.message}</div>`;
+                                    }
+
+                                } else {
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = img.width;
+                                    canvas.height = img.height;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0);
+
+                                    const dataUrl = canvas.toDataURL(format);
+                                    const extension = format.split('/')[1];
+                                    
+                                    const link = document.createElement('a');
+                                    link.href = dataUrl;
+                                    link.download = `converted.${extension}`;
+                                    link.className = 'pm-button';
+                                    link.textContent = `Download ${extension.toUpperCase()}`;
+                                    
+                                    outputDiv.innerHTML = '';
+                                    outputDiv.appendChild(link);
+                                }
+                            };
+                            img.onerror = () => {
+                                outputDiv.innerHTML = `<div class="notification error">Could not load the image file. It may be corrupt.</div>`;
                             };
                             img.src = e.target.result;
                         };
                         reader.readAsDataURL(file);
                     });
+                    
+                    // Initial actions
+                    loadPdfLibrary();
+                    updateButtonState();
                 }
             },
+            // ... ALL OTHER TOOLS REMAIN UNCHANGED ...
             'image-compressor': {
                 name: 'Image Compressor',
                 desc: 'Reduce the file size of your JPG or WEBP images.',
@@ -1539,7 +1642,7 @@
                             swDisplay.textContent = formatTime(swElapsedTime);
                         }, 10);
                     };
-                    document.getElementById('ts-sw-stop').onclick = () => clearInterval(swInterval);
+                    document.getElementById('ts-sw-stop').onclick = () => { clearInterval(swInterval); swInterval=null; };
                     document.getElementById('ts-sw-reset').onclick = () => {
                         clearInterval(swInterval);
                         swInterval = null;
@@ -1573,7 +1676,9 @@
                         const s = Math.floor((remaining / 1000) % 60);
                         const m = Math.floor((remaining / 1000 / 60) % 60);
                         const h = Math.floor(remaining / 1000 / 60 / 60);
-                        hInput.value = h; mInput.value = m; sInput.value = s;
+                        hInput.value = h.toString().padStart(2, '0'); 
+                        mInput.value = m.toString().padStart(2, '0'); 
+                        sInput.value = s.toString().padStart(2, '0');
                         if (remaining <= 0) {
                             clearInterval(timerInterval);
                             timerInterval = null;
@@ -1588,11 +1693,11 @@
                         endTime = Date.now() + totalTime;
                         timerInterval = setInterval(updateTimerDisplay, 250);
                     };
-                    document.getElementById('ts-t-stop').onclick = () => clearInterval(timerInterval);
+                    document.getElementById('ts-t-stop').onclick = () => { clearInterval(timerInterval); timerInterval = null; };
                     document.getElementById('ts-t-reset').onclick = () => {
                         clearInterval(timerInterval);
                         timerInterval = null;
-                        hInput.value = 0; mInput.value = 5; sInput.value = 0;
+                        hInput.value = "0"; mInput.value = "5"; sInput.value = "0";
                     };
                 }
             }
@@ -1636,7 +1741,11 @@
         function closeModal() {
             modal.classList.remove('active');
             document.body.style.overflow = 'auto';
-            // Clean up to prevent memory leaks with things like intervals
+            // Clean up dynamically added scripts to prevent memory leaks
+            const dynamicScript = document.getElementById('jspdf-dynamic-script');
+            if (dynamicScript) {
+                dynamicScript.remove();
+            }
             modalBody.innerHTML = '';
         }
 
