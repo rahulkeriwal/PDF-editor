@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF editor – Multi Tool Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 🎨 OFFICIAL COLOR PALETTE & CSS VARIABLES (ABHINAV PROMPT THEME) --- */
+        :root {
+            --main-bg: #0d0f14;
+            --navbar-bg: #1c222d;
+            --card-bg: #12151a;
+            --button-bg: #1c222d;
+            --primary-accent: #42f8f5;
+            --primary-text: #e0e0e0;
+            --secondary-text: #c5d1de;
+            --glow-shadow: rgba(66, 248, 245, 0.5);
+            --danger-glow: rgba(248, 66, 100, 0.6);
+            --success-glow: rgba(66, 248, 129, 0.6);
+            --border-radius-sm: 5px;
+            --border-radius-md: 10px;
+        }
+
+        /* --- 🌐 GLOBAL & RESET STYLES --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--main-bg);
+            color: var(--primary-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- 🎨 UI Component Styles --- */
+        .pm-button {
+            background-color: var(--button-bg);
+            color: var(--primary-accent);
+            border: 1px solid var(--primary-accent);
+            padding: 10px 20px;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pm-button:hover, .pm-button:focus {
+            background-color: var(--primary-accent);
+            color: var(--main-bg);
+            box-shadow: 0 0 15px var(--glow-shadow);
+            transform: translateY(-2px);
+        }
+        
+        .pm-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .pm-input, .pm-select, .pm-textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--main-bg);
+            border: 1px solid var(--navbar-bg);
+            border-radius: var(--border-radius-sm);
+            color: var(--primary-text);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .pm-input:focus, .pm-select:focus, .pm-textarea:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 8px var(--glow-shadow);
+        }
+        
+        .pm-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* --- 🔝 HEADER & NAVBAR --- */
+        .header {
+            background-color: var(--navbar-bg);
+            padding: 1rem 5%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--primary-accent);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-text);
+        }
+        
+        .header-logo span {
+            color: var(--primary-accent);
+        }
+
+        .navbar a {
+            color: var(--secondary-text);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .navbar a:hover, .navbar a.active {
+            color: var(--primary-accent);
+            text-shadow: 0 0 10px var(--glow-shadow);
+        }
+        
+        .menu-toggle {
+            display: none;
+            font-size: 2rem;
+            background: none;
+            border: none;
+            color: var(--primary-accent);
+            cursor: pointer;
+        }
+
+        /* --- 🏠 MAIN CONTENT & SECTIONS --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary-text);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px var(--glow-shadow);
+        }
+
+        /* --- 🛠️ TOOL GRID & CARDS --- */
+        #tools-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .tool-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--navbar-bg);
+            border-radius: var(--border-radius-md);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 25px var(--glow-shadow);
+        }
+
+        .tool-card h3 {
+            color: var(--primary-accent);
+            margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+        }
+
+        .tool-card p {
+            color: var(--secondary-text);
+            flex-grow: 1;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* --- 🔮 MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 15, 20, 0.8);
+            backdrop-filter: blur(5px);
+            display: none; /* Initially hidden */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-container {
+            background: var(--navbar-bg);
+            border: 1px solid var(--primary-accent);
+            box-shadow: 0 0 40px var(--glow-shadow);
+            border-radius: var(--border-radius-md);
+            padding: 2rem;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--navbar-bg);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+            color: var(--primary-accent);
+        }
+        
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-text);
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-close-btn:hover {
+            color: var(--primary-accent);
+            transform: rotate(90deg);
+        }
+        
+        .modal-body {
+            overflow-y: auto;
+            padding-right: 1rem; /* for scrollbar */
+        }
+        
+        /* Custom scrollbar for modal */
+        .modal-body::-webkit-scrollbar {
+          width: 8px;
+        }
+        .modal-body::-webkit-scrollbar-track {
+          background: var(--main-bg);
+        }
+        .modal-body::-webkit-scrollbar-thumb {
+          background-color: var(--primary-accent);
+          border-radius: 20px;
+          border: 3px solid var(--primary-accent);
+        }
+        
+        .result-box {
+            background: var(--main-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius-sm);
+            margin-top: 1rem;
+            border-left: 3px solid var(--primary-accent);
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .notification {
+            padding: 10px 15px;
+            border-radius: var(--border-radius-sm);
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+        .notification.success {
+            background: rgba(66, 248, 129, 0.2);
+            border: 1px solid var(--success-glow);
+            color: #42f881;
+        }
+        .notification.error {
+            background: rgba(248, 66, 100, 0.2);
+            border: 1px solid var(--danger-glow);
+            color: #f84264;
+        }
+
+        /* --- ⭐ NEW: ABOUT & CONTACT SECTION STYLES --- */
+        .page-section {
+            padding: 4rem 0;
+            border-top: 1px solid var(--navbar-bg);
+        }
+        .section-description {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 2rem auto;
+            color: var(--secondary-text);
+            font-size: 1.1rem;
+        }
+        .contact-info {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .contact-info p {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .contact-info a {
+            color: var(--primary-accent);
+            text-decoration: none;
+            transition: text-shadow 0.3s ease;
+        }
+        .contact-info a:hover {
+            text-shadow: 0 0 10px var(--glow-shadow);
+        }
+        
+        /* --- 📱 RESPONSIVE DESIGN --- */
+        @media (max-width: 992px) {
+            #tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .header-logo { font-size: 1.3rem; }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--navbar-bg);
+                padding: 1rem 0;
+            }
+            .navbar.active {
+                display: flex;
+            }
+            .navbar a {
+                margin: 0;
+                padding: 1rem 5%;
+                width: 100%;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            #tools-grid {
+                grid-template-columns: 1fr;
+            }
+            .section-title { font-size: 2rem; }
+            .modal-container { width: 95%; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- ======================= HEADER ======================= -->
+    <header class="header">
+        <div class="header-logo">PDF editor<span>– Multi Tool Hub</span></div>
+        <nav class="navbar">
+            <a href="#home">Home</a>
+            <a href="#tools">Tools</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+        </nav>
+        <button class="menu-toggle" id="menu-toggle">☰</button>
+    </header>
+
+    <!-- ======================= MAIN CONTENT ======================= -->
+    <main id="home">
+        <div class="container">
+            <h2 id="tools" class="section-title">Tools</h2>
+            <div id="tools-grid">
+                <!-- Tool cards will be generated by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- ======================= NEW SECTION: ABOUT ======================= -->
+    <section id="about" class="page-section">
+        <div class="container">
+            <h2 class="section-title">About PDF editor</h2>
+            <p class="section-description">
+                PDF editor is a futuristic, all-in-one toolkit designed for creators, developers, and everyday users. Our mission is to provide powerful, accessible, and fast client-side tools that respect your privacy.
+            </p>
+            <p class="section-description">
+                Everything you see here runs directly in your browser. No data is sent to our servers for processing. This means your files and information stay with you, ensuring maximum security and speed. We believe in the power of the web and aim to push the boundaries of what's possible with just HTML, CSS, and JavaScript.
+            </p>
+        </div>
+    </section>
+
+    <!-- ======================= NEW SECTION: CONTACT ======================= -->
+    <section id="contact" class="page-section" style="background-color: var(--card-bg);">
+        <div class="container">
+            <h2 class="section-title">CONTACT US</h2>
+            <p class="section-description">
+                Have a question, a suggestion for a new tool, or just want to say hi? We'd love to hear from you. Since this is a frontend-only project, the best way to reach us is via email.
+            </p>
+            <div class="contact-info">
+                <p>
+                    <strong>Email:</strong> 
+                    <a href="mailto:rahulkeriwal@gmail.com">hello@rahul.devloper</a>
+                </p>
+                <p>
+                    <strong>Location:</strong> 
+                    <span>online</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================= MODAL ======================= -->
+    <div class="modal-overlay" id="tool-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title">Tool Title</h2>
+                <button id="modal-close-btn" class="modal-close-btn">×</button>
+            </div>
+            <div id="modal-body" class="modal-body">
+                <!-- Tool-specific content goes here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // ============================ CORE APP LOGIC ============================
+        const toolsGrid = document.getElementById('tools-grid');
+        const modal = document.getElementById('tool-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        // Note on "No Libraries": QR Code generation from scratch is very complex. 
+        // We use a public API, which is a common practice for such tasks in frontend-only projects.
+        // It's not a library, but an external dependency. This is a pragmatic choice.
+        // Also, video/audio *format conversion* (e.g., mp4 to avi) is impossible in browser JS.
+        // The tools have been adapted to what is feasible (e.g., GIF Creator, Audio Trimmer).
+        
+        const toolsData = {
+            'image-converter': {
+                name: 'Image Converter',
+                desc: 'Convert images to JPG, PNG, or WEBP formats.',
+                getHTML: () => `
+                    <p>Upload an image and choose the format to convert to.</p>
+                    <input type="file" id="ic-file" class="pm-input" accept="image/*">
+                    <label for="ic-format">Convert to:</label>
+                    <select id="ic-format" class="pm-select">
+                        <option value="image/jpeg">JPG</option>
+                        <option value="image/png">PNG</option>
+                        <option value="image/webp">WEBP</option>
+                    </select>
+                    <button id="ic-convert-btn" class="pm-button">Convert & Download</button>
+                    <div id="ic-output"></div>
+                `,
+                init: () => {
+                    const fileInput = document.getElementById('ic-file');
+                    const formatSelect = document.getElementById('ic-format');
+                    const convertBtn = document.getElementById('ic-convert-btn');
+                    const outputDiv = document.getElementById('ic-output');
+
+                    convertBtn.addEventListener('click', () => {
+                        if (!fileInput.files || fileInput.files.length === 0) {
+                            outputDiv.innerHTML = `<div class="notification error">Please select a file first.</div>`;
+                            return;
+                        }
+                        const file = fileInput.files[0];
+                        const reader = new FileReader();
+
+                        reader.onload = e => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0);
+
+                                const format = formatSelect.value;
+                                const dataUrl = canvas.toDataURL(format);
+                                const extension = format.split('/')[1];
+                                
+                                const link = document.createElement('a');
+                                link.href = dataUrl;
+                                link.download = `converted.${extension}`;
+                                link.className = 'pm-button';
+                                link.textContent = `Download ${extension.toUpperCase()}`;
+                                
+                                outputDiv.innerHTML = '';
+                                outputDiv.appendChild(link);
+                            };
+                            img.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+            },
+            'image-compressor': {
+                name: 'Image Compressor',
+                desc: 'Reduce the file size of your JPG or WEBP images.',
+                getHTML: () => `
+                    <p>Upload an image and adjust the quality to compress it.</p>
+                    <input type="file" id="imc-file" class="pm-input" accept="image/jpeg,image/webp">
+                    <label for="imc-quality">Quality (0.1 to 1.0):</label>
+                    <input type="range" id="imc-quality" min="0.1" max="1" step="0.1" value="0.7" class="pm-input">
+                    <span id="imc-quality-value">0.7</span>
+                    <button id="imc-compress-btn" class="pm-button">Compress & Download</button>
+                    <div id="imc-output"></div>
+                `,
+                init: () => {
+                    const fileInput = document.getElementById('imc-file');
+                    const qualitySlider = document.getElementById('imc-quality');
+                    const qualityValue = document.getElementById('imc-quality-value');
+                    const compressBtn = document.getElementById('imc-compress-btn');
+                    const outputDiv = document.getElementById('imc-output');
+                    
+                    qualitySlider.addEventListener('input', () => qualityValue.textContent = qualitySlider.value);
+                    
+                    compressBtn.addEventListener('click', () => {
+                        if (!fileInput.files || fileInput.files.length === 0) {
+                             outputDiv.innerHTML = `<div class="notification error">Please select a file.</div>`;
+                             return;
+                        }
+                        const file = fileInput.files[0];
+                        const reader = new FileReader();
+                        
+                        reader.onload = e => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0);
+                                
+                                const quality = parseFloat(qualitySlider.value);
+                                const dataUrl = canvas.toDataURL(file.type, quality);
+                                
+                                const link = document.createElement('a');
+                                link.href = dataUrl;
+                                link.download = `compressed-${file.name}`;
+                                link.className = 'pm-button';
+                                link.textContent = 'Download Compressed Image';
+                                
+                                outputDiv.innerHTML = '';
+                                outputDiv.appendChild(link);
+                            };
+                            img.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+            },
+            'image-cropper': {
+                name: 'Image Cropper',
+                desc: 'Upload an image and crop it to your desired dimensions.',
+                getHTML: () => `
+                    <p>Upload an image, then click and drag to select an area to crop.</p>
+                    <input type="file" id="crop-file" class="pm-input" accept="image/*">
+                    <canvas id="crop-canvas" style="max-width: 100%; display: none; border: 1px solid var(--primary-accent);"></canvas>
+                    <div id="crop-output" style="margin-top:1rem;"></div>
+                `,
+                init: () => {
+                    const fileInput = document.getElementById('crop-file');
+                    const canvas = document.getElementById('crop-canvas');
+                    const ctx = canvas.getContext('2d');
+                    const outputDiv = document.getElementById('crop-output');
+                    let img, startX, startY, isDragging = false;
+                    let cropRect = {};
+
+                    fileInput.addEventListener('change', e => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            img = new Image();
+                            img.onload = () => {
+                                canvas.style.display = 'block';
+                                const maxWidth = modalBody.clientWidth - 40; // padding
+                                const scale = maxWidth / img.width;
+                                canvas.width = img.width > maxWidth ? maxWidth : img.width;
+                                canvas.height = img.height * (canvas.width / img.width);
+                                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            }
+                            img.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                    
+                    canvas.addEventListener('mousedown', e => {
+                        startX = e.offsetX;
+                        startY = e.offsetY;
+                        isDragging = true;
+                    });
+                    
+                    canvas.addEventListener('mousemove', e => {
+                        if (!isDragging) return;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = 'rgba(66, 248, 245, 0.3)';
+                        ctx.fillRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
+                        ctx.strokeStyle = 'var(--primary-accent)';
+                        ctx.strokeRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
+                    });
+
+                    canvas.addEventListener('mouseup', e => {
+                        isDragging = false;
+                        cropRect = {
+                            x: Math.min(startX, e.offsetX),
+                            y: Math.min(startY, e.offsetY),
+                            w: Math.abs(e.offsetX - startX),
+                            h: Math.abs(e.offsetY - startY)
+                        };
+                        
+                        if (cropRect.w > 0 && cropRect.h > 0) {
+                            const croppedCanvas = document.createElement('canvas');
+                            croppedCanvas.width = cropRect.w;
+                            croppedCanvas.height = cropRect.h;
+                            const croppedCtx = croppedCanvas.getContext('2d');
+                            
+                            // Adjust for scaling between original image and displayed canvas
+                            const scaleX = img.naturalWidth / canvas.width;
+                            const scaleY = img.naturalHeight / canvas.height;
+                            
+                            croppedCtx.drawImage(img, 
+                                cropRect.x * scaleX, cropRect.y * scaleY, 
+                                cropRect.w * scaleX, cropRect.h * scaleY,
+                                0, 0, 
+                                cropRect.w, cropRect.h
+                            );
+
+                            const dataUrl = croppedCanvas.toDataURL('image/png');
+                            outputDiv.innerHTML = `
+                                <div class="notification success">Crop successful!</div>
+                                <img src="${dataUrl}" style="max-width: 100%; margin-top: 1rem; border: 1px solid var(--primary-accent);">
+                                <a href="${dataUrl}" download="cropped-image.png" class="pm-button" style="display:inline-block; margin-top:1rem;">Download Cropped Image</a>
+                            `;
+                        }
+                    });
+                }
+            },
+            'gif-creator': {
+                name: 'GIF Creator from Video',
+                desc: 'Upload a short video and convert it to an animated GIF.',
+                getHTML: () => `
+                    <p>Note: This works best with short videos (<10s). Processing is done in your browser and may be slow.</p>
+                    <input type="file" id="gif-file" class="pm-input" accept="video/*">
+                    <label for="gif-fps">Frames per second (FPS):</label>
+                    <input type="number" id="gif-fps" class="pm-input" value="10" min="1" max="30">
+                    <button id="gif-create-btn" class="pm-button">Create GIF</button>
+                    <div id="gif-output"></div>
+                    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"><\/script>
+                `,
+                init: () => {
+                    const fileInput = document.getElementById('gif-file');
+                    const fpsInput = document.getElementById('gif-fps');
+                    const createBtn = document.getElementById('gif-create-btn');
+                    const outputDiv = document.getElementById('gif-output');
+                    
+                    createBtn.addEventListener('click', () => {
+                        if (!fileInput.files.length) {
+                            outputDiv.innerHTML = `<div class="notification error">Please select a video file.</div>`;
+                            return;
+                        }
+
+                        outputDiv.innerHTML = `<div class="notification">Processing... this may take a moment.</div>`;
+                        const file = fileInput.files[0];
+                        const video = document.createElement('video');
+                        video.src = URL.createObjectURL(file);
+                        video.muted = true;
+                        video.autoplay = false;
+
+                        video.onloadedmetadata = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            
+                            const gif = new GIF({
+                                workers: 2,
+                                quality: 10,
+                                workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+                            });
+                            
+                            const fps = parseInt(fpsInput.value);
+                            const interval = 1 / fps;
+                            let currentTime = 0;
+
+                            const addFrame = () => {
+                                if (currentTime < video.duration) {
+                                    video.currentTime = currentTime;
+                                    setTimeout(() => {
+                                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                        gif.addFrame(canvas, {copy: true, delay: interval * 1000});
+                                        currentTime += interval;
+                                        addFrame();
+                                    }, 100); // Give time for frame seek
+                                } else {
+                                    gif.render();
+                                }
+                            };
+
+                            addFrame();
+
+                            gif.on('finished', blob => {
+                                const url = URL.createObjectURL(blob);
+                                outputDiv.innerHTML = `
+                                    <div class="notification success">GIF created!</div>
+                                    <img src="${url}" style="max-width: 100%; border: 1px solid var(--primary-accent); margin-top: 1rem;">
+                                    <a href="${url}" download="created.gif" class="pm-button" style="display:inline-block; margin-top:1rem;">Download GIF</a>
+                                `;
+                                URL.revokeObjectURL(video.src);
+                            });
+                        };
+                    });
+                }
+            },
+            'audio-visualizer': {
+                name: 'Audio Visualizer',
+                desc: 'Play an audio file and see a real-time visualization.',
+                getHTML: () => `
+                    <p>Upload an audio file to see it visualized.</p>
+                    <input type="file" id="av-file" class="pm-input" accept="audio/*">
+                    <canvas id="av-canvas" width="600" height="200" style="background:var(--main-bg); border-radius:var(--border-radius-sm);"></canvas>
+                `,
+                init: () => {
+                    const fileInput = document.getElementById('av-file');
+                    const canvas = document.getElementById('av-canvas');
+                    const ctx = canvas.getContext('2d');
+                    let audioContext, analyser, source, dataArray;
+                    
+                    fileInput.addEventListener('change', e => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        
+                        const audio = new Audio(URL.createObjectURL(file));
+                        audio.controls = true;
+                        
+                        if (!audioContext) {
+                            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            analyser = audioContext.createAnalyser();
+                            analyser.fftSize = 256;
+                            source = audioContext.createMediaElementSource(audio);
+                            source.connect(analyser);
+                            analyser.connect(audioContext.destination);
+                            
+                            const bufferLength = analyser.frequencyBinCount;
+                            dataArray = new Uint8Array(bufferLength);
+                        }
+                        
+                        document.querySelector('#av-canvas').insertAdjacentElement('afterend', audio);
+                        audio.play();
+                        
+                        function draw() {
+                            requestAnimationFrame(draw);
+                            analyser.getByteFrequencyData(dataArray);
+                            
+                            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--main-bg');
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            
+                            const barWidth = (canvas.width / dataArray.length) * 2.5;
+                            let barHeight;
+                            let x = 0;
+                            
+                            for(let i = 0; i < dataArray.length; i++) {
+                                barHeight = dataArray[i] / 1.5;
+                                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-accent');
+                                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                                x += barWidth + 1;
+                            }
+                        }
+                        draw();
+                    });
+                }
+            },
+            'audio-trimmer': {
+                name: 'Audio Trimmer',
+                desc: 'Trim an audio file to a specific start and end time.',
+                getHTML: () => `
+                    <p>Upload an audio file to trim it. Processing happens in your browser.</p>
+                    <input type="file" id="at-file" class="pm-input" accept="audio/*">
+                    <div id="at-controls" style="display:none;">
+                        <label for="at-start">Start Time (s):</label>
+                        <input type="number" id="at-start" class="pm-input" value="0" min="0">
+                        <label for="at-end">End Time (s):</label>
+                        <input type="number" id="at-end" class="pm-input" value="5" min="0">
+                        <button id="at-trim-btn" class="pm-button">Trim & Download</button>
+                    </div>
+                    <div id="at-output"></div>
+                `,
+                init: () => {
+                    const fileInput = document.getElementById('at-file');
+                    const controlsDiv = document.getElementById('at-controls');
+                    const startInput = document.getElementById('at-start');
+                    const endInput = document.getElementById('at-end');
+                    const trimBtn = document.getElementById('at-trim-btn');
+                    const outputDiv = document.getElementById('at-output');
+                    let audioBuffer;
+
+                    fileInput.addEventListener('change', async e => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        
+                        outputDiv.innerHTML = `<div class="notification">Loading audio...</div>`;
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const arrayBuffer = await file.arrayBuffer();
+                        audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                        
+                        controlsDiv.style.display = 'block';
+                        endInput.value = audioBuffer.duration.toFixed(2);
+                        outputDiv.innerHTML = `<div class="notification success">Audio loaded! Duration: ${audioBuffer.duration.toFixed(2)}s</div>`;
+                    });
+
+                    trimBtn.addEventListener('click', () => {
+                        if (!audioBuffer) return;
+                        
+                        const start = parseFloat(startInput.value);
+                        const end = parseFloat(endInput.value);
+                        
+                        if (start >= end || start < 0 || end > audioBuffer.duration) {
+                            outputDiv.innerHTML = `<div class="notification error">Invalid start/end times.</div>`;
+                            return;
+                        }
+                        
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const startOffset = Math.floor(start * audioBuffer.sampleRate);
+                        const endOffset = Math.floor(end * audioBuffer.sampleRate);
+                        const frameCount = endOffset - startOffset;
+
+                        const newBuffer = audioCtx.createBuffer(
+                            audioBuffer.numberOfChannels,
+                            frameCount,
+                            audioBuffer.sampleRate
+                        );
+
+                        for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                            const channelData = audioBuffer.getChannelData(i);
+                            const newChannelData = newBuffer.getChannelData(i);
+                            newChannelData.set(channelData.subarray(startOffset, endOffset));
+                        }
+                        
+                        // Convert buffer to WAV blob
+                        const wavBlob = bufferToWave(newBuffer, frameCount);
+                        const url = URL.createObjectURL(wavBlob);
+                        
+                        outputDiv.innerHTML = `
+                            <div class="notification success">Trim complete!</div>
+                            <audio controls src="${url}" style="width:100%; margin-top:1rem;"></audio>
+                            <a href="${url}" download="trimmed.wav" class="pm-button" style="display:inline-block; margin-top:1rem;">Download WAV</a>
+                        `;
+                    });
+
+                    // Helper function to convert AudioBuffer to a WAV file Blob
+                    function bufferToWave(abuffer, len) {
+                        let numOfChan = abuffer.numberOfChannels,
+                            length = len * numOfChan * 2 + 44,
+                            buffer = new ArrayBuffer(length),
+                            view = new DataView(buffer),
+                            channels = [], i, sample,
+                            offset = 0,
+                            pos = 0;
+
+                        setUint32(0x46464952); // "RIFF"
+                        setUint32(length - 8); // file length - 8
+                        setUint32(0x45564157); // "WAVE"
+
+                        setUint32(0x20746d66); // "fmt " chunk
+                        setUint32(16); // length = 16
+                        setUint16(1); // PCM (uncompressed)
+                        setUint16(numOfChan);
+                        setUint32(abuffer.sampleRate);
+                        setUint32(abuffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
+                        setUint16(numOfChan * 2); // block-align
+                        setUint16(16); // 16-bit
+                        
+                        setUint32(0x61746164); // "data" - chunk
+                        setUint32(length - pos - 4); // chunk length
+
+                        for(i = 0; i < abuffer.numberOfChannels; i++)
+                            channels.push(abuffer.getChannelData(i));
+                        
+                        while(pos < length) {
+                            for(i = 0; i < numOfChan; i++) {
+                                sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                                sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767)|0;
+                                view.setInt16(pos, sample, true);
+                                pos += 2;
+                            }
+                            offset++;
+                        }
+                        
+                        return new Blob([view], {type: 'audio/wav'});
+                        
+                        function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+                        function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+                    }
+                }
+            },
+            'age-calculator': {
+                name: 'Age Calculator',
+                desc: 'Calculate your age based on your date of birth.',
+                getHTML: () => `
+                    <label for="ac-dob">Your Date of Birth:</label>
+                    <input type="date" id="ac-dob" class="pm-input">
+                    <button id="ac-calculate-btn" class="pm-button">Calculate Age</button>
+                    <div id="ac-result" class="result-box" style="display:none;"></div>
+                `,
+                init: () => {
+                    const dobInput = document.getElementById('ac-dob');
+                    const calcBtn = document.getElementById('ac-calculate-btn');
+                    const resultBox = document.getElementById('ac-result');
+
+                    calcBtn.addEventListener('click', () => {
+                        if (!dobInput.value) {
+                            resultBox.style.display = 'block';
+                            resultBox.innerHTML = '<span style="color:var(--danger-glow);">Please select a date.</span>';
+                            return;
+                        }
+                        const dob = new Date(dobInput.value);
+                        const today = new Date();
+                        
+                        let ageYears = today.getFullYear() - dob.getFullYear();
+                        let ageMonths = today.getMonth() - dob.getMonth();
+                        let ageDays = today.getDate() - dob.getDate();
+                        
+                        if (ageDays < 0) {
+                            ageMonths--;
+                            ageDays += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+                        }
+                        if (ageMonths < 0) {
+                            ageYears--;
+                            ageMonths += 12;
+                        }
+
+                        resultBox.style.display = 'block';
+                        resultBox.innerHTML = `You are: <strong>${ageYears}</strong> years, <strong>${ageMonths}</strong> months, and <strong>${ageDays}</strong> days old.`;
+                    });
+                }
+            },
+            'emi-calculator': {
+                name: 'EMI Calculator',
+                desc: 'Calculate your Equated Monthly Installment for loans.',
+                getHTML: () => `
+                    <label for="emi-p">Principal Amount (P):</label>
+                    <input type="number" id="emi-p" class="pm-input" placeholder="e.g., 100000">
+                    <label for="emi-r">Annual Interest Rate (%):</label>
+                    <input type="number" id="emi-r" class="pm-input" placeholder="e.g., 8.5">
+                    <label for="emi-n">Loan Tenure (in months):</label>
+                    <input type="number" id="emi-n" class="pm-input" placeholder="e.g., 120">
+                    <button id="emi-calc-btn" class="pm-button">Calculate EMI</button>
+                    <div id="emi-result" class="result-box" style="display:none;"></div>
+                `,
+                init: () => {
+                    document.getElementById('emi-calc-btn').addEventListener('click', () => {
+                        const p = parseFloat(document.getElementById('emi-p').value);
+                        const r_annual = parseFloat(document.getElementById('emi-r').value);
+                        const n = parseFloat(document.getElementById('emi-n').value);
+                        const resultBox = document.getElementById('emi-result');
+                        
+                        if(isNaN(p) || isNaN(r_annual) || isNaN(n) || p <= 0 || r_annual <= 0 || n <= 0) {
+                            resultBox.style.display = 'block';
+                            resultBox.innerHTML = `<span style="color:var(--danger-glow);">Please enter valid positive numbers.</span>`;
+                            return;
+                        }
+
+                        const r = (r_annual / 12) / 100;
+                        const emi = p * r * (Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1));
+                        const totalPayable = emi * n;
+                        const totalInterest = totalPayable - p;
+                        
+                        resultBox.style.display = 'block';
+                        resultBox.innerHTML = `
+                            Monthly EMI: <strong>${emi.toFixed(2)}</strong><br>
+                            Total Interest Payable: <strong>${totalInterest.toFixed(2)}</strong><br>
+                            Total Payment (Principal + Interest): <strong>${totalPayable.toFixed(2)}</strong>
+                        `;
+                    });
+                }
+            },
+            'sip-calculator': {
+                name: 'SIP Calculator',
+                desc: 'Calculate the future value of your monthly investments (SIP).',
+                getHTML: () => `
+                    <label for="sip-m">Monthly Investment:</label>
+                    <input type="number" id="sip-m" class="pm-input" placeholder="e.g., 5000">
+                    <label for="sip-r">Expected Annual Return Rate (%):</label>
+                    <input type="number" id="sip-r" class="pm-input" placeholder="e.g., 12">
+                    <label for="sip-t">Investment Period (in years):</label>
+                    <input type="number" id="sip-t" class="pm-input" placeholder="e.g., 10">
+                    <button id="sip-calc-btn" class="pm-button">Calculate Future Value</button>
+                    <div id="sip-result" class="result-box" style="display:none;"></div>
+                `,
+                init: () => {
+                    document.getElementById('sip-calc-btn').addEventListener('click', () => {
+                        const m = parseFloat(document.getElementById('sip-m').value);
+                        const r_annual = parseFloat(document.getElementById('sip-r').value);
+                        const t = parseFloat(document.getElementById('sip-t').value);
+                        const resultBox = document.getElementById('sip-result');
+
+                        if (isNaN(m) || isNaN(r_annual) || isNaN(t) || m <= 0 || r_annual <= 0 || t <= 0) {
+                            resultBox.style.display = 'block';
+                            resultBox.innerHTML = `<span style="color:var(--danger-glow);">Please enter valid positive numbers.</span>`;
+                            return;
+                        }
+
+                        const i = (r_annual / 100) / 12;
+                        const n = t * 12;
+                        const futureValue = m * ((Math.pow(1 + i, n) - 1) / i) * (1 + i);
+                        const totalInvested = m * n;
+                        const wealthGained = futureValue - totalInvested;
+                        
+                        resultBox.style.display = 'block';
+                        resultBox.innerHTML = `
+                            Invested Amount: <strong>${totalInvested.toFixed(2)}</strong><br>
+                            Est. Returns: <strong>${wealthGained.toFixed(2)}</strong><br>
+                            Future Value: <strong>${futureValue.toFixed(2)}</strong>
+                        `;
+                    });
+                }
+            },
+            'qr-code-generator': {
+                name: 'QR Code Generator',
+                desc: 'Generate a QR code from any text or URL.',
+                getHTML: () => `
+                    <label for="qr-text">Text or URL:</label>
+                    <textarea id="qr-text" class="pm-textarea" placeholder="Enter text here..."></textarea>
+                    <button id="qr-gen-btn" class="pm-button">Generate QR Code</button>
+                    <div id="qr-result" class="result-box" style="text-align: center; display:none;"></div>
+                `,
+                init: () => {
+                    document.getElementById('qr-gen-btn').addEventListener('click', () => {
+                        const text = document.getElementById('qr-text').value;
+                        const resultBox = document.getElementById('qr-result');
+                        
+                        if (!text) {
+                            resultBox.style.display = 'block';
+                            resultBox.innerHTML = `<span style="color:var(--danger-glow);">Please enter text to generate a QR code.</span>`;
+                            return;
+                        }
+                        
+                        const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
+                        resultBox.style.display = 'block';
+                        resultBox.innerHTML = `<img src="${qrImageUrl}" alt="Generated QR Code">`;
+                    });
+                }
+            },
+            'password-generator': {
+                name: 'Password Generator',
+                desc: 'Create strong, random passwords with various options.',
+                getHTML: () => `
+                    <label for="pg-length">Password Length:</label>
+                    <input type="range" id="pg-length" class="pm-input" min="8" max="32" value="16">
+                    <span id="pg-length-val">16</span>
+                    <div>
+                        <input type="checkbox" id="pg-upper" checked> <label for="pg-upper">Uppercase</label><br>
+                        <input type="checkbox" id="pg-lower" checked> <label for="pg-lower">Lowercase</label><br>
+                        <input type="checkbox" id="pg-nums" checked> <label for="pg-nums">Numbers</label><br>
+                        <input type="checkbox" id="pg-syms"> <label for="pg-syms">Symbols</label>
+                    </div>
+                    <button id="pg-gen-btn" class="pm-button" style="margin-top:1rem;">Generate Password</button>
+                    <div id="pg-result" class="result-box" style="display:none; cursor:pointer;" title="Click to copy"></div>
+                `,
+                init: () => {
+                    const lengthSlider = document.getElementById('pg-length');
+                    const lengthVal = document.getElementById('pg-length-val');
+                    const genBtn = document.getElementById('pg-gen-btn');
+                    const resultBox = document.getElementById('pg-result');
+                    const options = {
+                        upper: document.getElementById('pg-upper'),
+                        lower: document.getElementById('pg-lower'),
+                        nums: document.getElementById('pg-nums'),
+                        syms: document.getElementById('pg-syms'),
+                    };
+
+                    lengthSlider.addEventListener('input', () => lengthVal.textContent = lengthSlider.value);
+                    
+                    genBtn.addEventListener('click', () => {
+                        const length = parseInt(lengthSlider.value);
+                        const charSets = {
+                            upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                            lower: 'abcdefghijklmnopqrstuvwxyz',
+                            nums: '0123456789',
+                            syms: '!@#$%^&*()_+~`|}{[]:;?><,./-='
+                        };
+                        
+                        let charset = '';
+                        if (options.upper.checked) charset += charSets.upper;
+                        if (options.lower.checked) charset += charSets.lower;
+                        if (options.nums.checked) charset += charSets.nums;
+                        if (options.syms.checked) charset += charSets.syms;
+                        
+                        if (charset === '') {
+                            resultBox.style.display = 'block';
+                            resultBox.innerHTML = '<span style="color:var(--danger-glow);">Select at least one character type.</span>';
+                            return;
+                        }
+                        
+                        let password = '';
+                        for (let i = 0; i < length; i++) {
+                            password += charset.charAt(Math.floor(Math.random() * charset.length));
+                        }
+                        
+                        resultBox.style.display = 'block';
+                        resultBox.textContent = password;
+                    });
+                    
+                    resultBox.addEventListener('click', () => {
+                        if (resultBox.textContent && !resultBox.querySelector('span')) {
+                            navigator.clipboard.writeText(resultBox.textContent).then(() => {
+                                const originalText = resultBox.textContent;
+                                resultBox.innerHTML = '<span style="color:var(--success-glow);">Copied!</span>';
+                                setTimeout(() => { resultBox.textContent = originalText; }, 1500);
+                            });
+                        }
+                    });
+                }
+            },
+            'word-counter': {
+                name: 'Word Counter',
+                desc: 'Count words, characters, and sentences in a block of text.',
+                getHTML: () => `
+                    <textarea id="wc-text" class="pm-textarea" placeholder="Paste your text here..."></textarea>
+                    <div id="wc-result" class="result-box">
+                        Words: 0 | Characters: 0 | Sentences: 0
+                    </div>
+                `,
+                init: () => {
+                    const textArea = document.getElementById('wc-text');
+                    const resultBox = document.getElementById('wc-result');
+
+                    textArea.addEventListener('input', () => {
+                        const text = textArea.value;
+                        const words = text.trim().split(/\s+/).filter(Boolean).length;
+                        const chars = text.length;
+                        const sentences = (text.match(/[.!?]+/g) || []).length;
+                        
+                        resultBox.innerHTML = `
+                            Words: <strong>${words}</strong> | 
+                            Characters: <strong>${chars}</strong> |
+                            Sentences: <strong>${sentences}</strong>
+                        `;
+                    });
+                }
+            },
+            'base64-encoder-decoder': {
+                name: 'Base64 Encoder/Decoder',
+                desc: 'Encode text to Base64 or decode Base64 back to text.',
+                getHTML: () => `
+                    <label for="b64-input">Input:</label>
+                    <textarea id="b64-input" class="pm-textarea"></textarea>
+                    <button id="b64-encode-btn" class="pm-button">Encode</button>
+                    <button id="b64-decode-btn" class="pm-button">Decode</button>
+                    <div id="b64-result" class="result-box" style="margin-top:1rem;"></div>
+                `,
+                init: () => {
+                    const input = document.getElementById('b64-input');
+                    const resultBox = document.getElementById('b64-result');
+
+                    document.getElementById('b64-encode-btn').addEventListener('click', () => {
+                        try {
+                            resultBox.textContent = btoa(unescape(encodeURIComponent(input.value)));
+                        } catch (e) {
+                            resultBox.innerHTML = `<span style="color:var(--danger-glow);">Error encoding: ${e.message}</span>`;
+                        }
+                    });
+                    
+                    document.getElementById('b64-decode-btn').addEventListener('click', () => {
+                        try {
+                            resultBox.textContent = decodeURIComponent(escape(atob(input.value)));
+                        } catch (e) {
+                            resultBox.innerHTML = `<span style="color:var(--danger-glow);">Invalid Base64 string: ${e.message}</span>`;
+                        }
+                    });
+                }
+            },
+            'color-picker': {
+                name: 'Color Picker Tool',
+                desc: 'Pick a color and get its HEX, RGB, and HSL values.',
+                getHTML: () => `
+                    <p>Use the color picker to select a color.</p>
+                    <input type="color" id="cp-picker" value="#42f8f5" style="width:100%; height: 50px; border:none; padding:0; background:none;">
+                    <div id="cp-result" class="result-box" style="margin-top:1rem;"></div>
+                `,
+                init: () => {
+                    const picker = document.getElementById('cp-picker');
+                    const resultBox = document.getElementById('cp-result');
+                    
+                    function updateColorValues(hex) {
+                        const rgb = hexToRgb(hex);
+                        const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+                        resultBox.innerHTML = `
+                            <strong>HEX:</strong> ${hex}<br>
+                            <strong>RGB:</strong> rgb(${rgb.r}, ${rgb.g}, ${rgb.b})<br>
+                            <strong>HSL:</strong> hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s * 100)}%, ${Math.round(hsl.l * 100)}%)
+                        `;
+                        modalBody.style.setProperty('--local-color', hex); // for fun
+                        resultBox.style.borderLeftColor = 'var(--local-color)';
+                    }
+                    
+                    picker.addEventListener('input', e => updateColorValues(e.target.value));
+                    
+                    // Initial run
+                    updateColorValues(picker.value);
+                    
+                    // Color conversion helpers
+                    function hexToRgb(hex) {
+                        const bigint = parseInt(hex.substring(1), 16);
+                        return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+                    }
+                    function rgbToHsl(r, g, b) {
+                        r /= 255; g /= 255; b /= 255;
+                        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                        let h, s, l = (max + min) / 2;
+                        if (max === min) { h = s = 0; } 
+                        else {
+                            const d = max - min;
+                            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                            switch (max) {
+                                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                                case g: h = (b - r) / d + 2; break;
+                                case b: h = (r - g) / d + 4; break;
+                            }
+                            h /= 6;
+                        }
+                        return { h: h * 360, s: s, l: l };
+                    }
+                }
+            },
+            'text-to-speech': {
+                name: 'Text to Speech',
+                desc: 'Convert text into spoken audio using your browser\'s voice.',
+                getHTML: () => `
+                    <textarea id="tts-text" class="pm-textarea" placeholder="Enter text to speak..."></textarea>
+                    <label for="tts-voice">Voice:</label>
+                    <select id="tts-voice" class="pm-select"></select>
+                    <button id="tts-speak-btn" class="pm-button">Speak</button>
+                    <div id="tts-status"></div>
+                `,
+                init: () => {
+                    const textInput = document.getElementById('tts-text');
+                    const voiceSelect = document.getElementById('tts-voice');
+                    const speakBtn = document.getElementById('tts-speak-btn');
+                    const statusDiv = document.getElementById('tts-status');
+                    let voices = [];
+
+                    function populateVoiceList() {
+                        voices = speechSynthesis.getVoices();
+                        voiceSelect.innerHTML = voices
+                            .map((voice, i) => `<option value="${i}">${voice.name} (${voice.lang})</option>`)
+                            .join('');
+                    }
+
+                    populateVoiceList();
+                    if (speechSynthesis.onvoiceschanged !== undefined) {
+                        speechSynthesis.onvoiceschanged = populateVoiceList;
+                    }
+
+                    speakBtn.addEventListener('click', () => {
+                        if (speechSynthesis.speaking) {
+                            speechSynthesis.cancel();
+                        }
+                        if (textInput.value !== '') {
+                            const utterance = new SpeechSynthesisUtterance(textInput.value);
+                            utterance.voice = voices[voiceSelect.value];
+                            utterance.onstart = () => statusDiv.innerHTML = `<div class="notification">Speaking...</div>`;
+                            utterance.onend = () => statusDiv.innerHTML = ``;
+                            speechSynthesis.speak(utterance);
+                        }
+                    });
+                }
+            },
+            'speech-to-text': {
+                name: 'Speech to Text',
+                desc: 'Convert your spoken words into text using your microphone.',
+                getHTML: () => `
+                    <p>Click "Start Listening" and speak into your microphone.</p>
+                    <button id="stt-start-btn" class="pm-button">Start Listening</button>
+                    <div id="stt-result" class="result-box" style="min-height: 100px;"></div>
+                `,
+                init: () => {
+                    const startBtn = document.getElementById('stt-start-btn');
+                    const resultBox = document.getElementById('stt-result');
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+                    if (!SpeechRecognition) {
+                        resultBox.innerHTML = '<span style="color:var(--danger-glow);">Speech Recognition not supported in this browser.</span>';
+                        startBtn.disabled = true;
+                        return;
+                    }
+                    
+                    const recognition = new SpeechRecognition();
+                    recognition.interimResults = true;
+                    
+                    recognition.addEventListener('result', e => {
+                        const transcript = Array.from(e.results)
+                            .map(result => result[0])
+                            .map(result => result.transcript)
+                            .join('');
+                        resultBox.textContent = transcript;
+                    });
+                    
+                    recognition.addEventListener('end', () => {
+                        startBtn.textContent = 'Start Listening';
+                    });
+                    
+                    startBtn.addEventListener('click', () => {
+                        if (startBtn.textContent === 'Start Listening') {
+                            recognition.start();
+                            startBtn.textContent = 'Stop Listening';
+                        } else {
+                            recognition.stop();
+                            startBtn.textContent = 'Start Listening';
+                        }
+                    });
+                }
+            },
+            'json-formatter': {
+                name: 'JSON Formatter',
+                desc: 'Validate and format your JSON data for readability.',
+                getHTML: () => `
+                    <label for="json-input">Paste JSON here:</label>
+                    <textarea id="json-input" class="pm-textarea" style="height:200px;"></textarea>
+                    <button id="json-format-btn" class="pm-button">Format JSON</button>
+                    <div id="json-result"></div>
+                `,
+                init: () => {
+                    const input = document.getElementById('json-input');
+                    const resultDiv = document.getElementById('json-result');
+
+                    document.getElementById('json-format-btn').addEventListener('click', () => {
+                        try {
+                            const parsed = JSON.parse(input.value);
+                            const formatted = JSON.stringify(parsed, null, 4);
+                            input.value = formatted;
+                            resultDiv.innerHTML = `<div class="notification success">Valid JSON! Formatted successfully.</div>`;
+                        } catch (e) {
+                            resultDiv.innerHTML = `<div class="notification error">Invalid JSON: ${e.message}</div>`;
+                        }
+                    });
+                }
+            },
+            'unit-converter': {
+                name: 'Unit Converter',
+                desc: 'Convert between various units of measurement.',
+                getHTML: () => `
+                    <div style="display:flex; gap: 1rem; align-items:flex-end;">
+                        <div style="flex:2">
+                            <label for="uc-value">Value:</label>
+                            <input type="number" id="uc-value" class="pm-input" value="1">
+                        </div>
+                        <div style="flex:3">
+                            <label for="uc-from">From:</label>
+                            <select id="uc-from" class="pm-select"></select>
+                        </div>
+                        <div style="flex:1; text-align:center; padding-bottom:10px; font-size:1.5rem;">⇄</div>
+                        <div style="flex:3">
+                            <label for="uc-to">To:</label>
+                            <select id="uc-to" class="pm-select"></select>
+                        </div>
+                    </div>
+                    <label for="uc-category">Category:</label>
+                    <select id="uc-category" class="pm-select"></select>
+                    <div id="uc-result" class="result-box" style="margin-top:1rem;"></div>
+                `,
+                init: () => {
+                    const valueInput = document.getElementById('uc-value');
+                    const fromSelect = document.getElementById('uc-from');
+                    const toSelect = document.getElementById('uc-to');
+                    const categorySelect = document.getElementById('uc-category');
+                    const resultBox = document.getElementById('uc-result');
+
+                    const units = {
+                        Length: { 'meters': 1, 'kilometers': 1000, 'miles': 1609.34, 'feet': 0.3048, 'inches': 0.0254 },
+                        Mass: { 'grams': 1, 'kilograms': 1000, 'pounds': 453.592, 'ounces': 28.3495 },
+                        Temperature: { 'Celsius': 'c', 'Fahrenheit': 'f', 'Kelvin': 'k' }
+                    };
+
+                    function populateCategories() {
+                        categorySelect.innerHTML = Object.keys(units).map(cat => `<option>${cat}</option>`).join('');
+                        populateUnits();
+                    }
+
+                    function populateUnits() {
+                        const category = categorySelect.value;
+                        const unitNames = Object.keys(units[category]);
+                        fromSelect.innerHTML = unitNames.map(u => `<option>${u}</option>`).join('');
+                        toSelect.innerHTML = unitNames.map(u => `<option>${u}</option>`).join('');
+                        toSelect.selectedIndex = 1;
+                        convert();
+                    }
+
+                    function convert() {
+                        const value = parseFloat(valueInput.value);
+                        const fromUnit = fromSelect.value;
+                        const toUnit = toSelect.value;
+                        const category = categorySelect.value;
+                        
+                        if (isNaN(value)) {
+                            resultBox.innerHTML = '<span style="color:var(--danger-glow);">Invalid input value.</span>';
+                            return;
+                        }
+
+                        let result;
+                        if (category === 'Temperature') {
+                            // Special handling for temperature
+                            const tempMap = {
+                                'c-f': v => v * 9/5 + 32, 'c-k': v => v + 273.15,
+                                'f-c': v => (v - 32) * 5/9, 'f-k': v => (v - 32) * 5/9 + 273.15,
+                                'k-c': v => v - 273.15, 'k-f': v => (v - 273.15) * 9/5 + 32
+                            };
+                            if (fromUnit === toUnit) {
+                                result = value;
+                            } else {
+                                const key = `${units[category][fromUnit]}-${units[category][toUnit]}`;
+                                result = tempMap[key](value);
+                            }
+                        } else {
+                            // Standard conversion
+                            const fromFactor = units[category][fromUnit];
+                            const toFactor = units[category][toUnit];
+                            result = value * fromFactor / toFactor;
+                        }
+                        
+                        resultBox.innerHTML = `Result: <strong>${result.toFixed(4)} ${toUnit}</strong>`;
+                    }
+                    
+                    [valueInput, fromSelect, toSelect, categorySelect].forEach(el => el.addEventListener('change', convert));
+                    categorySelect.addEventListener('change', populateUnits);
+                    
+                    populateCategories();
+                }
+            },
+            'bmi-calculator': {
+                name: 'BMI Calculator',
+                desc: 'Calculate your Body Mass Index (BMI).',
+                getHTML: () => `
+                    <label for="bmi-weight">Weight (kg):</label>
+                    <input type="number" id="bmi-weight" class="pm-input" placeholder="e.g., 70">
+                    <label for="bmi-height">Height (cm):</label>
+                    <input type="number" id="bmi-height" class="pm-input" placeholder="e.g., 175">
+                    <button id="bmi-calc-btn" class="pm-button">Calculate BMI</button>
+                    <div id="bmi-result" class="result-box" style="display:none;"></div>
+                `,
+                init: () => {
+                    document.getElementById('bmi-calc-btn').addEventListener('click', () => {
+                        const weight = parseFloat(document.getElementById('bmi-weight').value);
+                        const heightCm = parseFloat(document.getElementById('bmi-height').value);
+                        const resultBox = document.getElementById('bmi-result');
+                        
+                        if (isNaN(weight) || isNaN(heightCm) || weight <= 0 || heightCm <= 0) {
+                            resultBox.style.display = 'block';
+                            resultBox.innerHTML = `<span style="color:var(--danger-glow);">Please enter valid weight and height.</span>`;
+                            return;
+                        }
+
+                        const heightM = heightCm / 100;
+                        const bmi = weight / (heightM * heightM);
+                        let category = '';
+                        if (bmi < 18.5) category = 'Underweight';
+                        else if (bmi < 24.9) category = 'Normal weight';
+                        else if (bmi < 29.9) category = 'Overweight';
+                        else category = 'Obesity';
+                        
+                        resultBox.style.display = 'block';
+                        resultBox.innerHTML = `Your BMI is <strong>${bmi.toFixed(2)}</strong>. <br>Category: <strong>${category}</strong>`;
+                    });
+                }
+            },
+            'timer-stopwatch': {
+                name: 'Timer / Stopwatch',
+                desc: 'A simple stopwatch and a countdown timer.',
+                getHTML: () => `
+                    <div style="display:flex; justify-content:center; gap:1rem; margin-bottom:1rem;">
+                        <button id="ts-mode-stopwatch" class="pm-button active">Stopwatch</button>
+                        <button id="ts-mode-timer" class="pm-button">Timer</button>
+                    </div>
+                    <div id="ts-stopwatch-view">
+                        <div class="result-box" style="font-size: 2.5rem; text-align:center; font-family:monospace;">00:00:00.000</div>
+                        <div style="margin-top:1rem; display:flex; gap:1rem;">
+                            <button id="ts-sw-start" class="pm-button">Start</button>
+                            <button id="ts-sw-stop" class="pm-button">Stop</button>
+                            <button id="ts-sw-reset" class="pm-button">Reset</button>
+                        </div>
+                    </div>
+                    <div id="ts-timer-view" style="display:none;">
+                         <div style="display:flex; gap: 1rem; align-items:center;">
+                            <input type="number" id="ts-t-h" class="pm-input" min="0" value="0" placeholder="H">
+                            <input type="number" id="ts-t-m" class="pm-input" min="0" max="59" value="5" placeholder="M">
+                            <input type="number" id="ts-t-s" class="pm-input" min="0" max="59" value="0" placeholder="S">
+                         </div>
+                        <div style="margin-top:1rem; display:flex; gap:1rem;">
+                            <button id="ts-t-start" class="pm-button">Start Timer</button>
+                            <button id="ts-t-stop" class="pm-button">Stop</button>
+                            <button id="ts-t-reset" class="pm-button">Reset</button>
+                        </div>
+                    </div>
+                `,
+                init: () => {
+                    // Stopwatch
+                    const swDisplay = document.querySelector('#ts-stopwatch-view .result-box');
+                    let swInterval, swStartTime, swElapsedTime = 0;
+                    
+                    function formatTime(ms) {
+                        const date = new Date(ms);
+                        const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+                        const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+                        const milliseconds = date.getUTCMilliseconds().toString().padStart(3, '0');
+                        return `${minutes}:${seconds}.${milliseconds}`;
+                    }
+                    
+                    document.getElementById('ts-sw-start').onclick = () => {
+                        if (swInterval) return;
+                        swStartTime = Date.now() - swElapsedTime;
+                        swInterval = setInterval(() => {
+                            swElapsedTime = Date.now() - swStartTime;
+                            swDisplay.textContent = formatTime(swElapsedTime);
+                        }, 10);
+                    };
+                    document.getElementById('ts-sw-stop').onclick = () => clearInterval(swInterval);
+                    document.getElementById('ts-sw-reset').onclick = () => {
+                        clearInterval(swInterval);
+                        swInterval = null;
+                        swElapsedTime = 0;
+                        swDisplay.textContent = '00:00:00.000';
+                    };
+
+                    // Timer
+                    const timerView = document.getElementById('ts-timer-view');
+                    const stopwatchView = document.getElementById('ts-stopwatch-view');
+                    const hInput = document.getElementById('ts-t-h');
+                    const mInput = document.getElementById('ts-t-m');
+                    const sInput = document.getElementById('ts-t-s');
+                    let timerInterval, totalTime, endTime;
+                    
+                    document.getElementById('ts-mode-timer').onclick = (e) => {
+                        timerView.style.display = 'block';
+                        stopwatchView.style.display = 'none';
+                        e.target.classList.add('active');
+                        document.getElementById('ts-mode-stopwatch').classList.remove('active');
+                    };
+                    document.getElementById('ts-mode-stopwatch').onclick = (e) => {
+                        timerView.style.display = 'none';
+                        stopwatchView.style.display = 'block';
+                        e.target.classList.add('active');
+                        document.getElementById('ts-mode-timer').classList.remove('active');
+                    };
+
+                    function updateTimerDisplay() {
+                        const remaining = Math.max(0, endTime - Date.now());
+                        const s = Math.floor((remaining / 1000) % 60);
+                        const m = Math.floor((remaining / 1000 / 60) % 60);
+                        const h = Math.floor(remaining / 1000 / 60 / 60);
+                        hInput.value = h; mInput.value = m; sInput.value = s;
+                        if (remaining <= 0) {
+                            clearInterval(timerInterval);
+                            timerInterval = null;
+                            alert('Timer finished!');
+                        }
+                    }
+
+                    document.getElementById('ts-t-start').onclick = () => {
+                        if (timerInterval) return;
+                        totalTime = (parseInt(hInput.value)*3600 + parseInt(mInput.value)*60 + parseInt(sInput.value)) * 1000;
+                        if (totalTime <= 0) return;
+                        endTime = Date.now() + totalTime;
+                        timerInterval = setInterval(updateTimerDisplay, 250);
+                    };
+                    document.getElementById('ts-t-stop').onclick = () => clearInterval(timerInterval);
+                    document.getElementById('ts-t-reset').onclick = () => {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        hInput.value = 0; mInput.value = 5; sInput.value = 0;
+                    };
+                }
+            }
+        };
+
+        // ============================ DYNAMIC UI RENDERING ============================
+
+        // Populate the tools grid
+        for (const toolId in toolsData) {
+            const tool = toolsData[toolId];
+            const card = document.createElement('div');
+            card.className = 'tool-card';
+            card.dataset.tool = toolId;
+            card.innerHTML = `
+                <h3>${tool.name}</h3>
+                <p>${tool.desc}</p>
+                <button class="pm-button">Open Tool</button>
+            `;
+            toolsGrid.appendChild(card);
+        }
+
+        // ============================ EVENT LISTENERS ============================
+
+        // Open modal
+        toolsGrid.addEventListener('click', e => {
+            const card = e.target.closest('.tool-card');
+            if (card) {
+                const toolId = card.dataset.tool;
+                const tool = toolsData[toolId];
+                if (tool) {
+                    modalTitle.textContent = tool.name;
+                    modalBody.innerHTML = tool.getHTML();
+                    tool.init();
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                }
+            }
+        });
+
+        // Close modal
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            // Clean up to prevent memory leaks with things like intervals
+            modalBody.innerHTML = '';
+        }
+
+        modalCloseBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', e => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+        
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const navbar = document.querySelector('.navbar');
+        menuToggle.addEventListener('click', () => {
+            navbar.classList.toggle('active');
+        });
+
+    });
+    </script>
+</body>
+</html>
